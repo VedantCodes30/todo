@@ -132,12 +132,13 @@ li {
   justify-content: space-between;
   align-items: center;
   border-radius: 8px;
+  border: 1px solid #8b8b8b;
   margin-bottom: 8px;
   transition: 0.3s ease;
 }
 
 li:hover {
-  background: #333;
+  background: #727272;
 }
 
 /* Delete Button */

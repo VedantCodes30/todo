@@ -4,16 +4,22 @@ const addButton = document.querySelector("button");
 const list = document.getElementById("list");
 const themeToggle = document.getElementById("themeToggle");
 
-// Function to add task
-function addTask() {
-  const taskText = input.value.trim();
-  if (taskText === "") return;
+// Function to load tasks from localStorage
+function loadTasks() {
+  const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
 
+  tasks.forEach((task) => {
+    createTaskElement(task.text, task.isLightMode);
+  });
+}
+
+// Function to create a task element
+function createTaskElement(taskText, isLightMode = false) {
   const li = document.createElement("li");
   li.textContent = taskText;
 
-  // Apply current theme to new tasks
-  if (document.body.classList.contains("light")) {
+  // Apply light theme if needed
+  if (isLightMode) {
     li.classList.add("light-item");
   }
 
@@ -21,10 +27,40 @@ function addTask() {
   const deleteBtn = document.createElement("button");
   deleteBtn.textContent = "X";
   deleteBtn.classList.add("delete-btn");
-  deleteBtn.addEventListener("click", () => li.remove());
+
+  deleteBtn.addEventListener("click", () => {
+    li.remove();
+    removeTaskFromStorage(taskText);
+  });
 
   li.appendChild(deleteBtn);
   list.appendChild(li);
+}
+
+// Function to save task to localStorage
+function saveTask(taskText) {
+  const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+  tasks.push({
+    text: taskText,
+    isLightMode: document.body.classList.contains("light"),
+  });
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+// Function to remove task from localStorage
+function removeTaskFromStorage(taskText) {
+  let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+  tasks = tasks.filter((task) => task.text !== taskText);
+  localStorage.setItem("tasks", JSON.stringify(tasks));
+}
+
+// Function to add a new task
+function addTask() {
+  const taskText = input.value.trim();
+  if (taskText === "") return;
+
+  createTaskElement(taskText);
+  saveTask(taskText);
   input.value = "";
 }
 
@@ -43,7 +79,6 @@ function themeChange() {
   const body = document.body;
   body.classList.toggle("light");
 
-  // Save theme preference
   const isLightMode = body.classList.contains("light");
   localStorage.setItem("theme", isLightMode ? "light" : "dark");
 
@@ -55,19 +90,20 @@ function themeChange() {
       li.classList.remove("light-item");
     }
   });
+
+  // Update theme mode for saved tasks
+  const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+  tasks.forEach((task) => (task.isLightMode = isLightMode));
+  localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
 // Event listener for theme toggle
 themeToggle.addEventListener("click", themeChange);
 
-// Load saved theme preference
+// Load saved theme and tasks on page load
 document.addEventListener("DOMContentLoaded", () => {
   if (localStorage.getItem("theme") === "light") {
     document.body.classList.add("light");
-
-    // Apply light theme to existing tasks
-    document.querySelectorAll("li").forEach((li) => {
-      li.classList.add("light-item");
-    });
   }
+  loadTasks();
 });
